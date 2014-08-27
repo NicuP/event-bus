@@ -1,11 +1,17 @@
 package bus;
 
-public interface EventBus<T> {
-    public void registerConsumer(String group, T consumer);
+public interface EventBus<C, T> {
+    static final String DEFAULT_GROUP = "";
 
-    public void registerConsumer(T consumer);
+    void registerConsumer(String group, C consumer);
 
-    public void postEvent(String group, Object... events);
+    default void registerConsumer(C consumer) {
+        registerConsumer(DEFAULT_GROUP, consumer);
+    }
 
-    public void post(Object... events);
+    void postEvent(String group, T... events);
+
+    default void postEvent(T... events) {
+        postEvent(DEFAULT_GROUP, events);
+    }
 }

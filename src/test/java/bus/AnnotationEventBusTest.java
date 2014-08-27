@@ -7,7 +7,7 @@ import static org.junit.Assert.assertEquals;
 public class AnnotationEventBusTest {
     @Test
     public void testBasic() {
-        AnnotationEventBus annotationEventBus = new AnnotationEventBus();
+        EventBus<Object, Object> annotationEventBus = new AnnotationEventBus();
         Consumer consumer = new Consumer();
         annotationEventBus.registerConsumer(consumer);
         String message = "tada";

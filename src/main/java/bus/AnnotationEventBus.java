@@ -1,27 +1,22 @@
 package bus;
 
-import java.util.logging.Logger;
+import static bus.ValidationUtil.notNulArguments;
+import static bus.ValidationUtil.notNull;
+import static bus.ValidationUtil.validateConsumerIsAnnotated;
 
-import static bus.BusValidator.*;
+public class AnnotationEventBus implements EventBus<Object, Object> {
 
-public class AnnotationEventBus implements EventBus<Object> {
-    public static final String DEFAULT_GROUP = "";
-    private static Logger logger = Logger.getLogger(AnnotationEventBus.class.getName());
-
+    @Override
     public void registerConsumer(String group, Object consumer) {
+        notNull(group, "Group");
+        validateConsumerIsAnnotated(consumer);
 
     }
 
-    public void registerConsumer(Object consumer) {
-        registerConsumer(DEFAULT_GROUP, consumer);
-    }
-
+    @Override
     public void postEvent(String group, Object... events) {
-        validatePostedArguments(group, events);
+        notNull(group, "Group");
+        notNulArguments(events);
 
-    }
-
-    public void post(Object... events) {
-        postEvent(DEFAULT_GROUP, events);
     }
 }
