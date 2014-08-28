@@ -1,25 +1,53 @@
 package bus;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.function.Consumer;
+import java.util.concurrent.*;
+import java.util.function.Function;
+
+import static bus.ThreadType.ExecutorHolder.*;
 
 public enum ThreadType {
-    SINGLE_THREAD(Runnable::run),
-    NEW_THREAD(runnable -> new Thread(runnable).start()),
-    POOLED_THREAD(ExecutorHolder.executor::execute);
+    SINGLE_THREAD((callable) -> {
+        try {
+            return callable.call();
+        } catch (Exception e) {
+            throw new CodeException(e);
+        }
+    }),
+    NEW_THREAD(callable -> {
+        try {
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            Future<?> future = executorService.submit(callable);
+            Object response = future.get();
+            executorService.shutdown();
+            return response;
+        } catch (InterruptedException e) {
+            throw new InternalException(e);
+        } catch (ExecutionException e){
+            throw new CodeException(e);
+        }
+    }),
+    POOLED_THREAD(callable -> {
+        try {
+            Future<?> future = executor.submit(callable);
+            return future.get();
+        } catch (InterruptedException e) {
+            throw new InternalException(e);
+        } catch (ExecutionException e){
+            throw new CodeException(e);
+        }
+    });
 
-    private Consumer<Runnable> invoker;
+    private Function<Callable<?>, ?> invoker;
 
-    ThreadType(Consumer<Runnable> invoker) {
+    ThreadType(Function<Callable<?>, ?> invoker) {
         this.invoker = invoker;
     }
 
-    public void invoke(Runnable runnable) {
-        invoker.accept(runnable);
+    public Object invoke(Callable<?> callable) {
+        return invoker.apply(callable);
     }
 
     static class ExecutorHolder {
-        static Executor executor = Executors.newCachedThreadPool();
+        static ExecutorService executor = Executors.newCachedThreadPool();
     }
 }

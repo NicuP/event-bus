@@ -11,7 +11,7 @@ class ValidationUtil {
                 return;
             }
         }
-        throw new IllegalArgumentException("Given object of class '" + cls +
+        throw new ConfigurationException("Given object of class '" + cls +
                 "' does not have any method annotated with @Consume");
     }
 
@@ -19,7 +19,7 @@ class ValidationUtil {
     static void notNulArguments(Object... events) {
         for (int i = 0; i < events.length; i++) {
             if (events[i] == null) {
-                throw new NullPointerException("Argument number " + (i + 1) +
+                throw new ConfigurationException("Argument number " + (i + 1) +
                         "of type " + events[i].getClass() + " is null; " +
                         "posting null objects is not allowed");
             }

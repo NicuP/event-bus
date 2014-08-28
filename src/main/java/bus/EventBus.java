@@ -5,6 +5,8 @@ public interface EventBus<C, T> {
 
     void registerConsumer(String group, C consumer);
 
+    void unregisterConsumer(String group, C consumer);
+
     default void registerConsumer(C consumer) {
         registerConsumer(DEFAULT_GROUP, consumer);
     }
