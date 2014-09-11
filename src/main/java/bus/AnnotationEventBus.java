@@ -13,16 +13,9 @@ public class AnnotationEventBus implements EventBus<Object, Object> {
     }
 
     @Override
-    public void unregisterConsumer(String group, Object consumer) {
+    public void postEventInGroup(String group, Object... events) {
         notNull(group, "Group");
-        validateConsumerIsAnnotated(consumer);
-        executeIfGroupExists(group, () -> busHandler.unregister(group, consumer));
-    }
-
-    @Override
-    public void postEvent(String group, Object... events) {
-        notNull(group, "Group");
-        notNulArguments(events);
+        notNullArguments(events);
         executeIfGroupExists(group, () -> busHandler.postEvent(group, events));
     }
 

@@ -3,27 +3,25 @@ package bus;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class BusUtil {
     private BusUtil() {}
 
     static String hashOf(Method method) {
-        return internalHash(method.getParameterTypes());
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        return innerHash(Arrays.stream(parameterTypes));
     }
 
     static String hashOf(Object... parameters) {
-        Class[] classes = Arrays.stream(parameters)
-                .map(Object::getClass)
-                .toArray(Class[]::new);
-        return internalHash(classes);
+        Stream<Class<?>> classes = Arrays.stream(parameters)
+                .map(Object::getClass);
+        return innerHash(classes);
     }
 
-    private static String internalHash(Class... parameters) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < parameters.length; i++) {
-            stringBuilder.append(parameters[i]).append(i);
-        }
-        return stringBuilder.toString();
+    private static String innerHash(Stream<Class<?>> classes) {
+        return classes.map(Class::getName)
+                .collect(Collectors.joining("_"));
     }
 
     static String getTypes(Object[] arguments) {

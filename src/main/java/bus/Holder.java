@@ -23,12 +23,6 @@ final class Holder {
                 .add(invocation);
     }
 
-    public void unregisterMethod(Object consumer, Method method) {
-        String hash = hashOf(method);
-        Invocation invocation = new Invocation(consumer, method);
-        holder.get(hash).remove(invocation);//todo not sure if ok, find beter solution
-    }
-
     void postEvent(boolean isReposted, Object... arguments) {
         String hash = hashOf(arguments);
         List<Invocation> invocations = holder.get(hash);
@@ -59,10 +53,10 @@ final class Holder {
                           List<Invocation> invocations,
                           Object[] arguments) {
         if (invocations == null || invocations.isEmpty()) {
-            String message = "cannot match given arguments '" +
-                    Arrays.toString(arguments) + "' of types '" +
-                    BusUtil.getTypes(arguments) + "'with any of the " +
-                    "registered objects' methods annotated with @Consume";
+            String message = "Cannot match given argument(s) '" +
+                    Arrays.toString(arguments) + "' of type(s) '" +
+                    BusUtil.getTypes(arguments) + "' with any of the " +
+                    "registered objects' methods annotated with " + Consume.class;
             if (isReposted) {
                 message += "; consider that this object is reposted, which " +
                         "means that is returned by one of your methods " +

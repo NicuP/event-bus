@@ -24,14 +24,6 @@ class BusHandler {
         }
     }
 
-    public void unregister(String group, Object consumer) {
-        Holder holder = holders.get(group);
-        List<Method> methods = getMethods(consumer);
-        for (Method method : methods) {
-            holder.unregisterMethod(consumer, method);
-        }
-    }
-
     private List<Method> getMethods(Object object) {
         List<Method> methods = new ArrayList<>();
         for (Method method : object.getClass().getMethods()) {

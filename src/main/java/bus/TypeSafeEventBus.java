@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static bus.ValidationUtil.notNulArguments;
+import static bus.ValidationUtil.notNullArguments;
 import static bus.ValidationUtil.notNull;
 
 public final class TypeSafeEventBus<T> implements EventBus<Subscriber<T>, T> {
@@ -26,9 +26,10 @@ public final class TypeSafeEventBus<T> implements EventBus<Subscriber<T>, T> {
 
     @Override
     @SafeVarargs
-    public final void postEvent(String group, T... events) {
+    @SuppressWarnings("unchecked")
+    public final void postEventInGroup(String group, T... events) {
         notNull(group, "Group");
-        notNulArguments(events);
+        notNullArguments(events);
         List<Subscriber<T>> subscriberGroup = consumers.get(group);
         subscriberGroup.forEach((subscriber) -> subscriber.invoke(events));
     }

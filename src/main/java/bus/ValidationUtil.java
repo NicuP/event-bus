@@ -16,7 +16,7 @@ class ValidationUtil {
     }
 
 
-    static void notNulArguments(Object... events) {
+    static void notNullArguments(Object... events) {
         for (int i = 0; i < events.length; i++) {
             if (events[i] == null) {
                 throw new ConfigurationException("Argument number " + (i + 1) +
