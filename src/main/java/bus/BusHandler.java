@@ -1,13 +1,14 @@
 package bus;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-import static bus.BusUtil.*;
+import static bus.BusUtil.getGroupName;
 
 class BusHandler {
     private Map<String, Holder> holders;
@@ -25,13 +26,11 @@ class BusHandler {
     }
 
     private List<Method> getMethods(Object object) {
-        List<Method> methods = new ArrayList<>();
-        for (Method method : object.getClass().getMethods()) {
-            if (method.isAnnotationPresent(Consume.class)) {
-                methods.add(method);
-            }
-        }
-        return methods;
+        Class<?> cls = object.getClass();
+        Method[] methods = cls.getMethods();
+        return Arrays.stream(methods)
+                .filter(method -> method.isAnnotationPresent(Consume.class))
+                .collect(Collectors.toList());
     }
 
     void postEvent(String group, Object... arguments) {

@@ -2,19 +2,17 @@ package bus;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
 
 final class Invocation {
     private final Method method;
     private final Object invokedObject;
-    private final ThreadType threadType;
-    private final boolean rePost;
+    private final Consume annotation;
 
     public Invocation(Object invokedObject, Method method) {
         this.invokedObject = invokedObject;
         this.method = method;
-        Consume annotation = method.getAnnotation(Consume.class);
-        this.threadType = annotation.threadType();
-        this.rePost = annotation.rePost();
+        this.annotation = method.getAnnotation(Consume.class);
     }
 
     public Method getMethod() {
@@ -26,7 +24,11 @@ final class Invocation {
     }
 
     public Object invoke(Object... arguments) {
-        Object invoke = threadType.invoke(() -> invokeMethod(arguments));
+        ThreadType threadType = annotation.threadType();
+        long timeout = annotation.timeout();
+        TimeUnit timeUnit = annotation.timeUnit();
+        Object invoke = threadType.invoke(() -> invokeMethod(arguments), timeout, timeUnit);
+        boolean rePost = annotation.rePost();
         if (rePost) {
             return invoke;
         } else {

@@ -1,18 +1,18 @@
 package bus;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 class ValidationUtil {
 
     static void validateConsumerIsAnnotated(Object consumer) {
         Class<?> cls = consumer.getClass();
-        for (Method method : cls.getMethods()) {
-            if (method.isAnnotationPresent(Consume.class)) {
-                return;
-            }
-        }
-        throw new ConfigurationException("Given object of class '" + cls +
-                "' does not have any method annotated with @Consume");
+        Method[] methods = cls.getMethods();
+        Arrays.stream(methods)
+                .filter(method -> method.isAnnotationPresent(Consume.class))
+                .findAny()
+                .orElseThrow(() -> new ConfigurationException("Given object of class '"
+                        + cls + "' does not have any method annotated with @Consume"));
     }
 
 

@@ -32,7 +32,7 @@ class BusUtil {
     }
 
     static String getGroupName(String group) {
-        if ("".equals(group)) {
+        if (EventBus.DEFAULT_GROUP.equals(group)) {
             return "(DEFAULT_GROUP)";
         } else {
             return group;
