@@ -11,17 +11,17 @@ import java.util.stream.Collectors;
 import static bus.BusUtil.getGroupName;
 
 class BusHandler {
-    private Map<String, Holder> holders;
+    private Map<String, ConsumersHolder> holders;
 
     BusHandler() {
         this.holders = new ConcurrentHashMap<>();
     }
 
     void register(String group, Object consumer) {
-        Holder holder = holders.computeIfAbsent(group, (s) -> new Holder());
+        ConsumersHolder consumersHolder = holders.computeIfAbsent(group, (s) -> new ConsumersHolder());
         List<Method> methods = getMethods(consumer);
         for (Method method : methods) {
-            holder.registerMethod(consumer, method);
+            consumersHolder.registerMethod(consumer, method);
         }
     }
 
@@ -34,9 +34,9 @@ class BusHandler {
     }
 
     void postEvent(String group, Object... arguments) {
-        Holder holder = holders.get(group);
+        ConsumersHolder consumersHolder = holders.get(group);
         try {
-            holder.postEvent(false, arguments);
+            consumersHolder.postEvent(false, arguments);
         } catch (ConfigurationException e) {
             throw new ConfigurationException("In group '" + getGroupName(group)
                     + "', " + e.getMessage());

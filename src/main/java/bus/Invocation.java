@@ -2,47 +2,62 @@ package bus;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.concurrent.Callable;
 
 import static bus.BusUtil.hashOf;
+
+/**
+ * This class holds the basic information about an consumer endpoint, that is the consumer
+ * object and the consumer method, and supports invoking this method having provided arguments.
+ */
 
 final class Invocation {
     private final Method method;
     private final Object invokedObject;
     private final Consume annotation;
 
-    public Invocation(Object invokedObject, Method method) {
+    /**
+     * @param invokedObject the object which is invoked when argument is posted
+     * @param method        the method which should be invoked and annotated with @Consume
+     */
+    Invocation(Object invokedObject, Method method) {
         this.invokedObject = invokedObject;
         this.method = method;
         this.annotation = method.getAnnotation(Consume.class);
     }
 
-    public Method getMethod() {
+    Method getMethod() {
         return method;
     }
 
-    public Object getInvokedObject() {
+    Object getInvokedObject() {
         return invokedObject;
     }
 
-    public Object invoke(Object... arguments) {
+    /**
+     * Invokes the given arguments on the method and objects.
+     *
+     * @param arguments the posted arguments
+     * @return the result of the method called
+     */
+    Optional<Object> invoke(Object... arguments) {
         ThreadType threadType = annotation.threadType();
-        long timeout = annotation.timeout();
-        TimeUnit timeUnit = annotation.timeUnit();
-        boolean waitForResponse = annotation.waitForResponse();
-        Object returnedObject = threadType.invoke(() -> invokeMethod(arguments), timeout, timeUnit);
+        Callable<Object> callable = () -> invokeMethod(arguments);
+        Optional<Object> returnedObject = threadType.invoke(callable, annotation);
         boolean rePost = annotation.rePost();
-        if (!rePost || isSameMethod(returnedObject, arguments)) {
-            return null;
+        if (shouldRepost(rePost, returnedObject, arguments)) {
+            return Optional.of(returnedObject);
         } else {
-            return returnedObject;
+            return Optional.empty();
         }
     }
 
-    /*Avoid stack overflow*/
-    private boolean isSameMethod(Object returnedObject, Object... arguments) {
-        return hashOf(returnedObject).equals(hashOf(arguments));
+    private boolean shouldRepost(boolean rePost, Optional<Object> returned, Object[] arguments) {
+        return rePost && returned.isPresent() &&
+                !hashOf(returned.get()).equals(hashOf(arguments));
     }
+
 
     private Object invokeMethod(Object... arguments) {
         try {

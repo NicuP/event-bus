@@ -16,12 +16,8 @@ public class AnnotationEventBus implements EventBus<Object, Object> {
     public void postEventInGroup(String group, Object... events) {
         notNull(group, "Group");
         notNullArguments(events);
-        executeIfGroupExists(group, () -> busHandler.postEvent(group, events));
-    }
-
-    private void executeIfGroupExists(String group, Runnable runnable) {
         if (busHandler.isGroupDefined(group)) {
-            runnable.run();
+            busHandler.postEvent(group, events);
         } else {
             throw new ConfigurationException("Given group '" + group + "' is " +
                     "not registered; registered groups are, DEFAULT_GROUP " +

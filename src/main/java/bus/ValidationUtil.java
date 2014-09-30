@@ -4,6 +4,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 class ValidationUtil {
+    private ValidationUtil() {
+    }
 
     static void validateConsumerIsAnnotated(Object consumer) {
         Class<?> cls = consumer.getClass();
