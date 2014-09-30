@@ -4,6 +4,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 
+import static bus.BusUtil.hashOf;
+
 final class Invocation {
     private final Method method;
     private final Object invokedObject;
@@ -27,13 +29,19 @@ final class Invocation {
         ThreadType threadType = annotation.threadType();
         long timeout = annotation.timeout();
         TimeUnit timeUnit = annotation.timeUnit();
-        Object invoke = threadType.invoke(() -> invokeMethod(arguments), timeout, timeUnit);
+        boolean waitForResponse = annotation.waitForResponse();
+        Object returnedObject = threadType.invoke(() -> invokeMethod(arguments), timeout, timeUnit);
         boolean rePost = annotation.rePost();
-        if (rePost) {
-            return invoke;
-        } else {
+        if (!rePost || isSameMethod(returnedObject, arguments)) {
             return null;
+        } else {
+            return returnedObject;
         }
+    }
+
+    /*Avoid stack overflow*/
+    private boolean isSameMethod(Object returnedObject, Object... arguments) {
+        return hashOf(returnedObject).equals(hashOf(arguments));
     }
 
     private Object invokeMethod(Object... arguments) {

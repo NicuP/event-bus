@@ -1,44 +1,50 @@
 package bus;
 
 import java.util.concurrent.*;
+import java.util.function.BiFunction;
 
 import static bus.ThreadType.ExecutorHolder.executor;
 
 public enum ThreadType {
-    SINGLE_THREAD((callable, timeout, timeUnit) -> {
+    SINGLE_THREAD((callable, consume) -> {
         try {
             return callable.call();
         } catch (Exception e) {
             throw new CodeException(e);
         }
     }),
-    NEW_THREAD((callable, timeout, timeUnit) -> {
+    NEW_THREAD((callable, consume) -> {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<?> future = executorService.submit(callable);
-        Object response = getResponse(future, timeout, timeUnit);
+        Object response = getResponse(future, consume);
         executorService.shutdown();
         return response;
     }),
-    POOLED_THREAD((callable, timeout, timeUnit) -> {
+    POOLED_THREAD((callable, consume) -> {
         Future<?> future = executor.submit(callable);
-        return getResponse(future, timeout, timeUnit);
+        return getResponse(future, consume);
     });
 
-    private TriFunction<Callable<?>, Long, TimeUnit, ?> invoker;
+    private BiFunction<Callable<?>, Consume, ?> invoker;
 
-    ThreadType(TriFunction<Callable<?>, Long, TimeUnit, ?> invoker) {
+    ThreadType(BiFunction<Callable<?>, Consume, ?> invoker) {
         this.invoker = invoker;
     }
 
-    public Object invoke(Callable<?> callable, Long timeout, TimeUnit timeUnit) {
-        return invoker.apply(callable, timeout, timeUnit);
+    public Object invoke(Callable<?> callable, Consume consume) {
+        return invoker.apply(callable, consume);
     }
 
-    private static Object getResponse(Future<?> future, long timeout, TimeUnit timeUnit) {
+    private static Object getResponse(Future<?> future, Consume consume) {
         try {
+            long timeout = consume.timeout();
+            if (!consume.waitForResponse()) {
+                return null;
+            }
             if (timeout == Consume.DEFAULT_TIMEOUT) {
                 return future.get();
             } else {
+                TimeUnit timeUnit = consume.timeUnit();
                 return future.get(timeout, timeUnit);
             }
         } catch (InterruptedException e) {
@@ -53,7 +59,7 @@ public enum ThreadType {
     }
 
     @FunctionalInterface
-    static interface TriFunction<P1, P2, P3, R> {
-        R apply(P1 p1, P2 p2, P3 p3);
+    static interface CvadriFunction<P1, P2, P3, P4, R> {
+        R apply(P1 p1, P2 p2, P3 p3, P4 p4);
     }
 }

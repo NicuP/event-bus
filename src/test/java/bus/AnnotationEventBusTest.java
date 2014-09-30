@@ -86,4 +86,26 @@ public class AnnotationEventBusTest {
             return newThreadName;
         }
     }
+
+    @Test
+    public void testStackOverflow() {
+        StackOverflowConsumer consumer = new StackOverflowConsumer();
+        annotationEventBus.registerConsumer(consumer);
+        annotationEventBus.postEvent(SAMPLE_MESSAGE);
+        assertEquals(SAMPLE_MESSAGE, consumer.getSample());
+    }
+
+    public class StackOverflowConsumer {
+        private String sample;
+
+        @Consume(rePost = true)
+        public String consume(String s) {
+            sample = s;
+            return s;
+        }
+
+        public String getSample() {
+            return sample;
+        }
+    }
 }
