@@ -2,15 +2,17 @@ package bus;
 
 import org.junit.Test;
 
+import java.util.concurrent.Semaphore;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-public class AnnotationEventBusTest {
+public class AnnotationEventBusSmokeTest {
     public static final String SAMPLE_MESSAGE = "tada";
     private EventBus<Object, Object> annotationEventBus = new AnnotationEventBus();
 
     @Test
-    public void testSmoke() {
+    public void testSameThread() {
         Consumer consumer = new Consumer();
         annotationEventBus.registerConsumer(consumer);
         annotationEventBus.postEvent(SAMPLE_MESSAGE);
@@ -40,16 +42,23 @@ public class AnnotationEventBusTest {
     }
 
     public class NewThreadConsumer {
-        private String sample;
+        private volatile String sample;
         private String newThreadName;
+        private Semaphore semaphore = new Semaphore(0);
 
         @Consume(threadType = ThreadType.NEW_THREAD)
         public void consume(String s) {
             sample = s;
+            semaphore.release();
             newThreadName = Thread.currentThread().getName();
         }
 
         String getSample() {
+            try {
+                semaphore.acquire();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             return sample;
         }
 
@@ -69,16 +78,23 @@ public class AnnotationEventBusTest {
     }
 
     public class PooledThreadConsumer {
-        private String sample;
+        private volatile String sample;
         private String newThreadName;
+        private final Semaphore semaphore = new Semaphore(0);
 
         @Consume(threadType = ThreadType.POOLED_THREAD)
         public void consume(String s) {
             sample = s;
             newThreadName = Thread.currentThread().getName();
+            semaphore.release();
         }
 
         String getSample() {
+            try {
+                semaphore.acquire();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             return sample;
         }
 
@@ -88,7 +104,7 @@ public class AnnotationEventBusTest {
     }
 
     @Test
-    public void testStackOverflow() {
+    public void testAvoidStackOverflow() {
         StackOverflowConsumer consumer = new StackOverflowConsumer();
         annotationEventBus.registerConsumer(consumer);
         annotationEventBus.postEvent(SAMPLE_MESSAGE);

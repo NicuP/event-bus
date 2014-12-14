@@ -14,7 +14,7 @@ public @interface Consume {
     /**
      * Indicate whether or not the method should be called in the same thread.
      */
-    ThreadType threadType() default ThreadType.SINGLE_THREAD;
+    ThreadType threadType() default ThreadType.SAME_THREAD;
 
     /**
      * Indicates whether the returned object of the annotated method should be automatically

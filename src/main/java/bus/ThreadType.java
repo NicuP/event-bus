@@ -7,10 +7,10 @@ import java.util.function.BiFunction;
 import static bus.ThreadType.ExecutorHolder.executor;
 
 public enum ThreadType {
-    SINGLE_THREAD((callable, consume) -> {
+    SAME_THREAD((callable, consume) -> {
         try {
             Object result = callable.call();
-            return Optional.of(result);
+            return Optional.ofNullable(result);
         } catch (Exception e) {
             throw new CodeException(e);
         }
@@ -45,15 +45,15 @@ public enum ThreadType {
             long timeout = invocationInfo.timeout();
             if (timeout == Consume.DEFAULT_TIMEOUT) {
                 Object result = future.get();
-                return Optional.of(result);
+                return Optional.ofNullable(result);
             } else {
                 TimeUnit timeUnit = invocationInfo.timeUnit();
                 Object result = future.get(timeout, timeUnit);
-                return Optional.of(result);
+                return Optional.ofNullable(result);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new InternalException(e);
+            return Optional.empty();
         } catch (ExecutionException | TimeoutException e) {
             throw new CodeException(e);
         }

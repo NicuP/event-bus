@@ -63,7 +63,9 @@ final class Invocation {
         try {
             return method.invoke(invokedObject, arguments);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new InternalException(e);
+            throw new ConfigurationException("Cannot invoke method '" + method.getName() +
+                    "' from class '" + invokedObject.getClass().getName() + "' on object '"
+                    + invokedObject + "' ", e);
         }
     }
 

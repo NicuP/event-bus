@@ -11,7 +11,7 @@ public interface EventBus<C, T> {
     void registerConsumer(String group, C consumer);
 
     /**
-     * Register a consumer in the default group.
+     * Register a consumer in DEFAULT_GROUP.
      *
      * @param consumer the consumer on which the events should be called
      */
@@ -30,8 +30,6 @@ public interface EventBus<C, T> {
      * events that do not have matching
      * @throws bus.CodeException thrown in case client code throws exception; wraps
      * the client exception
-     * @throws bus.InternalException thrown in case there was an issue with executing
-     * client code, like Security restrictions not allowing reflection
      */
     void postEventInGroup(String group, T... events);
 
@@ -45,8 +43,6 @@ public interface EventBus<C, T> {
      * events that do not have matching
      * @throws bus.CodeException thrown in case client code throws exception; wraps
      * the client exception
-     * @throws bus.InternalException thrown in case there was an issue with executing
-     * client code, like Security restrictions not allowing reflection
      */
     default void postEvent(T... events) {
         postEventInGroup(DEFAULT_GROUP, events);
